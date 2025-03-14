@@ -7,7 +7,8 @@ const publickRoutes = [
   "/forgot-password",
   "/reset-password",
   "/",
-  "/new-passpword",
+  "/new-password",
+  "/new-password/*",
   "/otp",
 ];
 
@@ -16,12 +17,17 @@ const loginUserForbiddenUser = [
   "/register",
   "/forgot-password",
   "/reset-password",
-  "/new-passpword",
+  "/new-password",
 ];
 
 export default async function middleware(req: NextRequest) {
   const session = await getSession();
   const { pathname } = req.nextUrl;
+
+  // Allow /new-password/:token route
+  if (pathname.startsWith("/new-password/")) {
+    return NextResponse.next();
+  }
 
   if (session.isLoggedIn && loginUserForbiddenUser.includes(pathname)) {
     return NextResponse.redirect(new URL("/dashboard", req.url).toString());
