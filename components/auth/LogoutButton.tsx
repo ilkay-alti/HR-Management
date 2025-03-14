@@ -1,25 +1,39 @@
 "use client";
 import { useLogout } from "@/hooks/useAuth";
-import React from "react";
+import React, { ElementType } from "react";
 import Heading from "../custom/Heading";
+import { LogInIcon } from "lucide-react";
 
-const LogoutButton = () => {
-  const logoutMutatiton = useLogout();
+interface LogoutButtonProps {
+  className?: string;
+  showText?: boolean;
+}
 
-  const ahndleLogout = () => {
-    logoutMutatiton.mutate();
+const LogoutButton: React.FC<LogoutButtonProps> = ({
+  className,
+  showText = true,
+}) => {
+  const logoutMutation = useLogout();
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
   };
 
+  const Tag: ElementType = "button";
+
   return (
-    <button
-      onClick={ahndleLogout}
-      disabled={logoutMutatiton.isPending}
-      className="bg-red-400 px-4 py-2 rounded-md transition-all duration-300 hover:bg-red-400/90 active:bg-red-400/80"
+    <Tag
+      onClick={handleLogout}
+      disabled={logoutMutation.isPending}
+      className={`bg-red-400 w-full flex items-center justify-center gap-3 px-2 py-3 rounded-md transition-all duration-300 hover:bg-red-400/90 active:bg-red-400/80 ${className}`}
     >
-      <Heading size="body1" variant="bold" className="text-white">
-        Logout
-      </Heading>
-    </button>
+      {showText && (
+        <Heading size="body1" variant="bold" className="text-white">
+          Logout
+        </Heading>
+      )}
+      <LogInIcon className="h-5 w-5 text-white" />
+    </Tag>
   );
 };
 
