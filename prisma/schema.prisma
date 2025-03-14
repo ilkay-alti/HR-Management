@@ -1,0 +1,183 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum DocumentType {
+  CV
+  COVER_LETTER
+  APPOINTMENT_LETTER
+  RELIEVING_LETTER
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  PAYPAL
+  CREDIT_CARD
+}
+
+enum ProjectStatus {
+  PLANNING
+  ONGOING
+  COMPLETED
+  ON_HOLD
+}
+
+model User {
+  id      String   @id @default(uuid())
+  name     String
+  email    String   @unique
+  password String
+  twoFactorConfirmation Boolean @default(false)   
+  emailVerified Boolean @default(false)
+  role     String   @default("user") 
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model TwoFactorToken {
+  id            String    @id @default(cuid())
+  email          String
+  token         String @unique 
+  expires     DateTime
+
+  @@unique([email, token])
+}
+
+model PasswordResetToken {
+  id            String    @id @default(cuid())
+  email          String
+  token         String @unique 
+  expires     DateTime
+
+  @@unique([email, token])
+}
+
+model Employee {
+  id Int @id @default(autoincrement())
+  
+  // Personal Information
+  firstName String
+  lastName String
+  phone String
+  personalEmail String @unique
+  birthDate DateTime
+  maritalStatus MaritalStatus
+  gender Gender
+  nationality String
+  address Address?
+
+  // Employment Details
+  employeeId String @unique
+  username String @unique
+  employeeType String
+  department Department @relation(fields: [departmentId], references: [id])
+  departmentId Int
+  workingDays String
+  officeLocation OfficeLocation @relation(fields: [officeLocationId], references: [id])
+  officeLocationId Int
+  joiningDate DateTime
+  designation String
+
+  // Relations
+  documents Document[]
+  payments Payment[]
+  accountAccess AccountAccess?
+  projects EmployeesOnProjects[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Address {
+  id Int @id @default(autoincrement())
+  street String
+  city String
+  state String?
+  postalCode String
+  country String
+  employee Employee? @relation(fields: [employeeId], references: [id])
+  employeeId Int? @unique
+}
+
+model Department {
+  id Int @id @default(autoincrement())
+  name String
+  description String?
+  employees Employee[]
+}
+
+model OfficeLocation {
+  id Int @id @default(autoincrement())
+  name String
+  address String
+  employees Employee[]
+}
+
+model Document {
+  id Int @id @default(autoincrement())
+  type DocumentType
+  filePath String
+  uploadedAt DateTime @default(now())
+  employee Employee @relation(fields: [employeeId], references: [id])
+  employeeId Int
+}
+
+model Payment {
+  id Int @id @default(autoincrement())
+  amount Float
+  paymentDate DateTime
+  method PaymentMethod
+  status String
+  employee Employee @relation(fields: [employeeId], references: [id])
+  employeeId Int
+}
+
+model Project {
+  id Int @id @default(autoincrement())
+  name String
+  description String?
+  startDate DateTime
+  endDate DateTime?
+  status ProjectStatus
+  employees EmployeesOnProjects[]
+}
+
+model EmployeesOnProjects {
+  employee Employee @relation(fields: [employeeId], references: [id])
+  employeeId Int
+  project Project @relation(fields: [projectId], references: [id])
+  projectId Int
+  assignedAt DateTime @default(now())
+  role String
+
+  @@id([employeeId, projectId])
+}
+
+model AccountAccess {
+  id Int @id @default(autoincrement())
+  companyEmail String? @unique
+  githubId String? @unique
+  skypeId String? @unique
+  employee Employee @relation(fields: [employeeId], references: [id])
+  employeeId Int @unique
+}
